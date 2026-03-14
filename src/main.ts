@@ -1,13 +1,13 @@
 import { App, Plugin, TFile } from 'obsidian';
-import { DropdownSettings, DEFAULT_SETTINGS, DropdownSettingTab, SelectorConfig } from "./settings";
+import { CustomSelectorsSettings, DEFAULT_SETTINGS, CustomSelectorsSettingTab, SelectorConfig } from "./settings";
 
-export default class DropdownPlugin extends Plugin {
-	settings: DropdownSettings;
+export default class CustomSelectorsPlugin extends Plugin {
+	settings: CustomSelectorsSettings;
 	observer: MutationObserver;
 
 	async onload() {
 		await this.loadSettings();
-		this.addSettingTab(new DropdownSettingTab(this.app, this));
+		this.addSettingTab(new CustomSelectorsSettingTab(this.app, this));
 
 		this.observer = new MutationObserver((mutations) => {
 			this.handleMutations(mutations);
@@ -25,7 +25,7 @@ export default class DropdownPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<DropdownSettings>);
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<CustomSelectorsSettings>);
 	}
 
 	async saveSettings() {
@@ -47,7 +47,7 @@ export default class DropdownPlugin extends Plugin {
 					if (!valueContainer) return;
 					
 					// If we haven't already injected our dropdown
-					if (!valueContainer.querySelector('.dropdown-plugin-select')) {
+					if (!valueContainer.querySelector('.custom-selectors-plugin-select')) {
 						this.replaceWithValueDropdown(valueContainer as HTMLElement, selectorConfig.options, key);
 					}
 				}
@@ -81,7 +81,7 @@ export default class DropdownPlugin extends Plugin {
 
 					const inputEl = cell.querySelector('input');
 					if (inputEl) {
-						if (!cell.querySelector('.dropdown-plugin-select')) {
+						if (!cell.querySelector('.custom-selectors-plugin-select')) {
 							this.injectIntoTableCellInput(cell, inputEl, sc.config);
 						}
 					}
@@ -109,7 +109,7 @@ export default class DropdownPlugin extends Plugin {
 		let currentValue = "";
 		
 		children.forEach((child: Element) => {
-			if (child.classList.contains('dropdown-plugin-select')) return;
+			if (child.classList.contains('custom-selectors-plugin-select')) return;
 
 			if (child instanceof HTMLElement) {
 				// Try to extract existing value. Usually it's an input or a rendered pill.
@@ -126,7 +126,7 @@ export default class DropdownPlugin extends Plugin {
 
 		// Create dropdown
 		const selectEl = document.createElement("select");
-		selectEl.classList.add('dropdown-plugin-select', 'search-input');
+		selectEl.classList.add('custom-selectors-plugin-select', 'search-input');
 		selectEl.style.width = '100%';
 		selectEl.style.background = 'transparent';
 		
@@ -166,7 +166,7 @@ export default class DropdownPlugin extends Plugin {
 		const currentValue = inputEl.value?.trim() || "";
 
 		const selectEl = document.createElement("select");
-		selectEl.classList.add('dropdown-plugin-select');
+		selectEl.classList.add('custom-selectors-plugin-select');
 		selectEl.style.width = '100%';
 		selectEl.style.background = 'var(--background-modifier-form-field)';
 		selectEl.style.color = 'var(--text-normal)';

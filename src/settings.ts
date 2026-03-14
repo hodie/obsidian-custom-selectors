@@ -1,23 +1,23 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
-import DropdownPlugin from "./main";
+import CustomSelectorsPlugin from "./main";
 
 export interface SelectorConfig {
 	name: string;
 	options: string[];
 }
 
-export interface DropdownSettings {
+export interface CustomSelectorsSettings {
 	selectors: SelectorConfig[];
 }
 
-export const DEFAULT_SETTINGS: DropdownSettings = {
+export const DEFAULT_SETTINGS: CustomSelectorsSettings = {
 	selectors: []
 };
 
-export class DropdownSettingTab extends PluginSettingTab {
-	plugin: DropdownPlugin;
+export class CustomSelectorsSettingTab extends PluginSettingTab {
+	plugin: CustomSelectorsPlugin;
 
-	constructor(app: App, plugin: DropdownPlugin) {
+	constructor(app: App, plugin: CustomSelectorsPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

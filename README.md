@@ -1,4 +1,4 @@
-# Obsidian Dropdown Plugin
+# Obsidian Custom Selectors Plugin
 
 This is a plugin for [Obsidian](https://obsidian.md) that allows you to define "selector" properties (e.g., `selector.status`) which display as interactive dropdown menus with pre-defined options. 
 
@@ -13,7 +13,7 @@ The plugin dynamically injects these dropdowns into both the standard **Properti
 ## How to use
 
 1. Enable the plugin in your Obsidian vault.
-2. Go to **Settings -> Dropdown**.
+2. Go to **Settings -> Custom Selectors**.
 3. Click **Add selector**.
 4. In the first field, enter the name of the property you want to turn into a dropdown (e.g., `selector.status` or `priority`).
 5. In the second field, enter a comma-separated list of the options you want to appear in the dropdown (e.g., `To-Do, Doing, Done`).
@@ -26,11 +26,11 @@ Whenever you add a property with that exact name to a note's frontmatter, it wil
 Since this plugin is not yet in the community directory, you can install it manually:
 
 1. Download the latest release from the Releases page on GitHub.
-2. Extract the archive into your vault's plugins folder: `<vault>/.obsidian/plugins/dropdown/`.
+2. Extract the archive into your vault's plugins folder: `<vault>/.obsidian/plugins/custom-selectors/`.
    - Ensure the folder contains `main.js` and `manifest.json`.
 3. Reload Obsidian.
 4. Go to **Settings -> Community plugins** and turn off "Safe mode".
-5. Enable the "Dropdown" plugin.
+5. Enable the "Custom Selectors" plugin.
 
 ## Local Development
 
