@@ -27,9 +27,15 @@ export class CustomSelectorsSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
+		const headingDesc = document.createDocumentFragment();
+		headingDesc.append(
+			"Define properties that display as dropdown menus in the Properties view and Bases tables. To use a selector in a Base, add ",
+			headingDesc.createEl("code", { text: "selector.<name>" }),
+			" as a property column in your Base view."
+		);
 		new Setting(containerEl)
 			.setName("Custom selectors")
-			.setDesc("Define properties that display as dropdown menus in the Properties view and Bases tables.")
+			.setDesc(headingDesc)
 			.setHeading();
 
 		this.plugin.settings.selectors.forEach((selector, index) => {
@@ -49,14 +55,23 @@ export class CustomSelectorsSettingTab extends PluginSettingTab {
 					})
 				);
 
-			new Setting(section)
+			const nameDesc = document.createDocumentFragment();
+			nameDesc.append("Add ");
+			const nameCode = nameDesc.createEl("code", { text: `selector.${shortName || "<name>"}` });
+			nameDesc.append(" as a property column in your Base view.");
+
+			const nameSetting = new Setting(section)
 				.setName("Name")
-				.setDesc("Stored as selector.<name> in frontmatter.")
+				.setDesc(nameDesc)
 				.addText(text => text
 					.setPlaceholder("e.g. status")
 					.setValue(shortName)
 					.onChange(async (value) => {
 						selector.name = `selector.${value}`;
+						nameCode.textContent = `selector.${value || "<name>"}`;
+						// Update section heading
+						const headingEl = section.querySelector('.setting-item-heading .setting-item-name');
+						if (headingEl) headingEl.textContent = value || "New selector";
 						await this.plugin.saveSettings();
 					})
 				);
