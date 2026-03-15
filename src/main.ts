@@ -209,6 +209,12 @@ export default class CustomSelectorsPlugin extends Plugin {
 		selectEl.addEventListener('click', (e) => {
 			e.stopPropagation(); // prevent closing the cell editor prematurely
 		});
+		selectEl.addEventListener('mousedown', (e) => {
+			e.stopPropagation();
+		});
+		selectEl.addEventListener('mouseup', (e) => {
+			e.stopPropagation();
+		});
 
 		cell.appendChild(selectEl);
 		selectEl.focus();
