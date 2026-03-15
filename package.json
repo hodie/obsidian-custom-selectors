@@ -11,7 +11,7 @@
 		"lint": "eslint ."
 	},
 	"keywords": ["obsidian", "plugin", "properties", "dropdown"],
-	"author": "hodie Meyers <hodiemeyers@gmail.com>",
+	"author": "@hodie",
 	"license": "MIT",
 	"devDependencies": {
 		"@types/node": "^16.11.6",
