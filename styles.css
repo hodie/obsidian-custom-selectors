@@ -2,6 +2,26 @@
 	display: none !important;
 }
 
+.cs-selector-section {
+	background: var(--background-secondary);
+	border-radius: var(--radius-m);
+	padding: 0 16px;
+	margin-bottom: 16px;
+}
+
+.cs-selector-section .setting-item {
+	background: none !important;
+	border: none;
+	border-bottom: 1px solid var(--background-modifier-border);
+	border-radius: 0;
+	box-shadow: none;
+	padding: 12px 0;
+}
+
+.cs-selector-section .setting-item:last-child {
+	border-bottom: none;
+}
+
 .custom-selectors-plugin-select {
 	width: 100%;
 	background: transparent;

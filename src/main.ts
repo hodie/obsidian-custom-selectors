@@ -4,6 +4,7 @@ import { CustomSelectorsSettings, DEFAULT_SETTINGS, CustomSelectorsSettingTab, S
 export default class CustomSelectorsPlugin extends Plugin {
 	settings: CustomSelectorsSettings;
 	observer: MutationObserver;
+	basesSelectors: SelectorConfig[] = [];
 
 	async onload() {
 		await this.loadSettings();
@@ -20,34 +21,17 @@ export default class CustomSelectorsPlugin extends Plugin {
 		});
 
 		// When a file is created from a Bases view (+New), set selector defaults
+		// When a file is created while a Bases view has selector columns,
+		// set the first option as the default value.
 		this.registerEvent(
 			this.app.vault.on('create', (file) => {
 				if (!(file instanceof TFile) || file.extension !== 'md') return;
-
-				// Only act when a Bases view is active
-				const leaf = this.app.workspace.getMostRecentLeaf();
-				if (!leaf?.view || leaf.view.getViewType() !== 'bases') return;
-
-				// Only default selectors that are columns in this Base
-				const basesView = (leaf as any).containerEl?.querySelector('.bases-view');
-				if (!basesView) return;
-
-				const headerNames = new Set(
-					Array.from(basesView.querySelectorAll('.bases-table-header-name'))
-						.map((el: Element) => el.textContent?.trim())
-						.filter((s): s is string => !!s)
-				);
-
-				const relevantSelectors = this.settings.selectors.filter(
-					s => s.name && s.options.length > 0 && headerNames.has(s.name)
-				);
-				if (relevantSelectors.length === 0) return;
-
-				// Delay to let Bases finish initializing the file
+				const defaults = this.basesSelectors.filter(s => s.defaultFirst);
+				if (defaults.length === 0) return;
 				setTimeout(() => {
 					// eslint-disable-next-line @typescript-eslint/no-floating-promises
 					this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
-						relevantSelectors.forEach(selector => {
+						defaults.forEach(selector => {
 							if (!frontmatter[selector.name]) {
 								frontmatter[selector.name] = selector.options[0];
 							}
@@ -94,18 +78,27 @@ export default class CustomSelectorsPlugin extends Plugin {
 
 		// 2. Obsidian Bases table view support.
 		// Bases uses a custom div grid: .bases-td[data-property="note.<name>"]
+		const activeBasesSelectors: SelectorConfig[] = [];
 		this.settings.selectors.forEach(selectorConfig => {
 			if (!selectorConfig.name) return;
 
 			const dataProperty = `note.${selectorConfig.name}`;
 			const cells = container.querySelectorAll(`.bases-td[data-property="${dataProperty}"]`);
+			if (cells.length > 0 && selectorConfig.options.length > 0) {
+				activeBasesSelectors.push(selectorConfig);
+			}
 
 			cells.forEach(cellEl => {
 				const cell = cellEl as HTMLElement;
 				const existingSelect = cell.querySelector('.custom-selectors-plugin-select') as HTMLSelectElement | null;
 
 				if (existingSelect) {
-					// Sync dropdown with underlying value if data changed externally
+					// Sync dropdown with underlying value if data changed externally,
+					// but skip if the user just changed the dropdown (avoid overwriting
+					// with stale content before Bases re-renders).
+					const lastChanged = parseInt(existingSelect.dataset.lastChanged || '0');
+					if (Date.now() - lastChanged < 2000) return;
+
 					const contentEl = cell.querySelector('.metadata-input-longtext') as HTMLElement | null;
 					const currentValue = (contentEl?.textContent || '').replace(/\s+/g, ' ').trim();
 					if (existingSelect.value !== currentValue) {
@@ -120,6 +113,7 @@ export default class CustomSelectorsPlugin extends Plugin {
 				this.injectIntoBaseCell(cell, row, selectorConfig);
 			});
 		});
+		this.basesSelectors = activeBasesSelectors;
 	}
 
 	private handleMutations(mutations: MutationRecord[]) {
@@ -239,6 +233,7 @@ export default class CustomSelectorsPlugin extends Plugin {
 
 		selectEl.addEventListener('change', (e) => {
 			const newValue = (e.target as HTMLSelectElement).value;
+			selectEl.dataset.lastChanged = Date.now().toString();
 
 			// Update frontmatter directly via the Obsidian API
 			if (href) {
