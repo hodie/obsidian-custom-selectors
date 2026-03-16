@@ -1,4 +1,4 @@
-import { Plugin, TFile } from 'obsidian';
+import { Plugin, TFile, WorkspaceLeaf } from 'obsidian';
 import { CustomSelectorsSettings, DEFAULT_SETTINGS, CustomSelectorsSettingTab, SelectorConfig } from "./settings";
 
 export default class CustomSelectorsPlugin extends Plugin {
@@ -54,6 +54,26 @@ export default class CustomSelectorsPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
+	/**
+	 * Resolve the file associated with a DOM element by finding its parent
+	 * workspace leaf. Falls back to getActiveFile() if the leaf can't be found.
+	 */
+	private getFileFromElement(el: HTMLElement): TFile | null {
+		const leafEl = el.closest('.workspace-leaf');
+		if (!leafEl) return this.app.workspace.getActiveFile();
+
+		let targetFile: TFile | null = null;
+		this.app.workspace.iterateAllLeaves((leaf: WorkspaceLeaf) => {
+			if (leaf.view.containerEl.parentElement === leafEl) {
+				const view = leaf.view;
+				if ('file' in view && view.file instanceof TFile) {
+					targetFile = view.file as TFile;
+				}
+			}
+		});
+		return targetFile ?? this.app.workspace.getActiveFile();
+	}
+
 	private injectDropdowns(container: HTMLElement | Document) {
 		// 1. Standard Properties view
 		const propertyContainers = container.querySelectorAll('.metadata-property');
@@ -61,17 +81,28 @@ export default class CustomSelectorsPlugin extends Plugin {
 			const keyEl = propEl.querySelector('.metadata-property-key-input') as HTMLInputElement;
 			if (!keyEl) return;
 			const key = keyEl.value || keyEl.textContent;
-			
+
 			if (key) {
 				const selectorConfig = this.settings.selectors.find(s => s.name && s.name === key);
 				if (selectorConfig) {
 					const valueContainer = propEl.querySelector('.metadata-property-value');
 					if (!valueContainer) return;
-					
-					// If we haven't already injected our dropdown
-					if (!valueContainer.querySelector('.custom-selectors-plugin-select')) {
-						this.replaceWithValueDropdown(valueContainer as HTMLElement, selectorConfig.options, key);
+
+					const existingSelect = valueContainer.querySelector<HTMLSelectElement>('.custom-selectors-plugin-select');
+					if (existingSelect) {
+						// Sync: update dropdown if the underlying value changed externally
+						const lastChanged = parseInt(existingSelect.dataset.lastChanged || '0');
+						if (Date.now() - lastChanged < 2000) return;
+						const nativeInput = valueContainer.querySelector<HTMLInputElement>('input');
+						const nativeEditable = valueContainer.querySelector<HTMLElement>('[contenteditable]');
+						const currentValue = (nativeInput?.value || nativeEditable?.textContent || '').replace(/\s+/g, ' ').trim();
+						if (existingSelect.value !== currentValue) {
+							existingSelect.value = currentValue || '';
+						}
+						return;
 					}
+
+					this.replaceWithValueDropdown(valueContainer as HTMLElement, selectorConfig.options, key);
 				}
 			}
 		});
@@ -198,6 +229,7 @@ export default class CustomSelectorsPlugin extends Plugin {
 
 		selectEl.addEventListener('change', (e) => {
 			const newValue = (e.target as HTMLSelectElement).value;
+			selectEl.dataset.lastChanged = Date.now().toString();
 
 			// Trigger Obsidian's internal reactive property system through the
 			// hidden native input so other views (like Bases) update immediately.
@@ -213,8 +245,10 @@ export default class CustomSelectorsPlugin extends Plugin {
 				nativeEditable.dispatchEvent(new InputEvent('input', { bubbles: true }));
 			}
 
-			// Also write via processFrontMatter as a fallback
-			const file = this.app.workspace.getActiveFile();
+			// Also write via processFrontMatter as a fallback.
+			// Resolve file from the DOM tree instead of getActiveFile() so
+			// the correct file is targeted even when open in multiple tabs.
+			const file = this.getFileFromElement(valueContainer);
 			if (file instanceof TFile) {
 				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
