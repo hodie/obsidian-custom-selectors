@@ -86,7 +86,7 @@ export default class CustomSelectorsPlugin extends Plugin {
 
 			cells.forEach(cellEl => {
 				const cell = cellEl as HTMLElement;
-				const existingSelect = cell.querySelector('.custom-selectors-plugin-select') as HTMLSelectElement | null;
+				const existingSelect = cell.querySelector<HTMLSelectElement>('.custom-selectors-plugin-select');
 
 				if (existingSelect) {
 					// Sync dropdown with underlying value if data changed externally,
@@ -95,7 +95,7 @@ export default class CustomSelectorsPlugin extends Plugin {
 					const lastChanged = parseInt(existingSelect.dataset.lastChanged || '0');
 					if (Date.now() - lastChanged < 2000) return;
 
-					const contentEl = cell.querySelector('.metadata-input-longtext') as HTMLElement | null;
+					const contentEl = cell.querySelector<HTMLElement>('.metadata-input-longtext');
 					const currentValue = (contentEl?.textContent || '').replace(/\s+/g, ' ').trim();
 					if (existingSelect.value !== currentValue) {
 						existingSelect.value = currentValue || '';
@@ -201,8 +201,8 @@ export default class CustomSelectorsPlugin extends Plugin {
 
 			// Trigger Obsidian's internal reactive property system through the
 			// hidden native input so other views (like Bases) update immediately.
-			const nativeInput = valueContainer.querySelector('input') as HTMLInputElement | null;
-			const nativeEditable = valueContainer.querySelector('[contenteditable]') as HTMLElement | null;
+			const nativeInput = valueContainer.querySelector<HTMLInputElement>('input');
+			const nativeEditable = valueContainer.querySelector<HTMLElement>('[contenteditable]');
 
 			if (nativeInput) {
 				nativeInput.value = newValue;
@@ -228,11 +228,11 @@ export default class CustomSelectorsPlugin extends Plugin {
 
 	private injectIntoBaseCell(cell: HTMLElement, row: HTMLElement, config: SelectorConfig) {
 		// Read current value from the contenteditable div inside the cell
-		const contentEl = cell.querySelector('.metadata-input-longtext') as HTMLElement | null;
+		const contentEl = cell.querySelector<HTMLElement>('.metadata-input-longtext');
 		const currentValue = (contentEl?.textContent || '').replace(/\s+/g, ' ').trim();
 
 		// Find the note file via the internal-link span in this row
-		const link = row.querySelector('.internal-link') as HTMLElement | null;
+		const link = row.querySelector<HTMLElement>('.internal-link');
 		const href = link?.getAttribute('data-href');
 
 		// The .bases-td is already position:absolute (uses inset-inline-start),

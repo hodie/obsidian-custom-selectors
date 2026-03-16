@@ -34,7 +34,7 @@ export class CustomSelectorsSettingTab extends PluginSettingTab {
 			" as a property column in your Base view."
 		);
 		new Setting(containerEl)
-			.setName("Custom selectors")
+			.setName("Selectors")
 			.setDesc(headingDesc)
 			.setHeading();
 
@@ -65,7 +65,7 @@ export class CustomSelectorsSettingTab extends PluginSettingTab {
 				.setName("Name")
 				.setDesc(nameDesc)
 				.addText(text => text
-					.setPlaceholder("e.g. status")
+					.setPlaceholder("Status")
 					.setValue(shortName)
 					.onChange(async (value) => {
 						selector.name = `selector.${value}`;
@@ -78,7 +78,7 @@ export class CustomSelectorsSettingTab extends PluginSettingTab {
 				.setName("Options")
 				.setDesc("Comma-separated list of dropdown values.")
 				.addText(text => text
-					.setPlaceholder("e.g. To-Do, Doing, Done")
+					.setPlaceholder("To-do, doing, done")
 					.setValue(selector.options.join(", "))
 					.onChange(async (value) => {
 						selector.options = value.split(",").map(s => s.trim()).filter(s => s.length > 0);
@@ -87,8 +87,8 @@ export class CustomSelectorsSettingTab extends PluginSettingTab {
 				);
 
 			new Setting(group)
-				.setName("Default to first option")
-				.setDesc("When creating a new file from a Bases view that includes this property as a column, set the first option as the default value.")
+				.setName("Default to first value")
+				.setDesc("When creating a new file from a bases view that includes this property as a column, set the first option as the default value.")
 				.addToggle(toggle => toggle
 					.setValue(selector.defaultFirst ?? false)
 					.onChange(async (value) => {
